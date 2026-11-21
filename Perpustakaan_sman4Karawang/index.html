@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perpustakaan Digital — SMAN 4 Karawang</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Menghubungkan file CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="container nav-content">
+      <div class="brand">
+        <div class="brand-logo">📚</div>
+        <div class="brand-text">
+          <h1>Perpustakaan Digital</h1>
+          <p>SMAN 4 Karawang</p>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" aria-label="Menu Utama">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="absen">Absen Pengunjung</button>
+        <button class="tab-btn" data-tab="sirkulasi">Pinjam &amp; Kembali</button>
+        <button class="tab-btn" data-tab="katalog">Katalog Buku</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container main-wrapper">
+
+    <!-- NOTIFIKASI TOAST -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="tab-section active">
+      <div class="hero-banner">
+        <div>
+          <span class="badge-pill">Sistem Informasi Perpustakaan Sekolah</span>
+          <h2>Selamat Datang di Perpustakaan SMAN 4 Karawang</h2>
+          <p>Silakan isi absensi kunjungan terlebih dahulu sebelum melakukan peminjaman atau pengembalian buku.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="switchTab('absen')">+ Isi Absen Sekarang</button>
+          <button class="btn btn-secondary" onclick="switchTab('sirkulasi')">Pinjam / Kembalikan Buku</button>
+        </div>
+      </div>
+
+      <!-- KARTU STATISTIK -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">👥</div>
+          <div class="stat-info">
+            <span class="stat-label">Pengunjung Hari Ini</span>
+            <h3 id="stat-visitors">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon lilac">📖</div>
+          <div class="stat-info">
+            <span class="stat-label">Buku Sedang Dipinjam</span>
+            <h3 id="stat-borrowed">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon mint">✅</div>
+          <div class="stat-info">
+            <span class="stat-label">Buku Dikembalikan</span>
+            <h3 id="stat-returned">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon lavender">📚</div>
+          <div class="stat-info">
+            <span class="stat-label">Total Koleksi Buku</span>
+            <h3 id="stat-books">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- RINGKASAN AKTIVITAS TERBARU & EKSPOR DATA -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3>Aktivitas Peminjaman &amp; Pengembalian Terbaru</h3>
+            <p class="subtitle">Data tersimpan otomatis di perangkat ini</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-outline btn-sm" onclick="exportCSV('loans')">Unduh Laporan Sirkulasi (CSV)</button>
+            <button class="btn btn-outline btn-sm" onclick="exportCSV('visitors')">Unduh Laporan Absen (CSV)</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>NISN / NIS</th>
+                <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>Judul Buku</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-loans-body">
+              <!-- Diisi via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ABSEN PENGUNJUNG ONLINE -->
+    <section id="tab-absen" class="tab-section">
+      <div class="grid-two">
+        <!-- FORM ABSEN -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Form Absen Pengunjung Online</h3>
+              <p class="subtitle">Wajib diisi siswa saat berkunjung ke perpustakaan</p>
+            </div>
+          </div>
+          <form id="form-visitor" class="form-stack">
+            <div class="form-group">
+              <label for="v-nis">NIS / NISN *</label>
+              <input type="text" id="v-nis" placeholder="Contoh: 232410085" required />
+            </div>
+            <div class="form-group">
+              <label for="v-name">Nama Lengkap Siswa *</label>
+              <input type="text" id="v-name" placeholder="Masukkan nama lengkap" required />
+            </div>
+            <div class="form-group">
+              <label for="v-class">Kelas *</label>
+              <select id="v-class" required>
+                <option value="">-- Pilih Kelas --</option>
+                <optgroup label="Kelas X">
+                  <option value="X-1">X-1</option>
+                  <option value="X-2">X-2</option>
+                  <option value="X-3">X-3</option>
+                  <option value="X-4">X-4</option>
+                  <option value="X-5">X-5</option>
+                </optgroup>
+                <optgroup label="Kelas XI">
+                  <option value="XI-1">XI-1</option>
+                  <option value="XI-2">XI-2</option>
+                  <option value="XI-3">XI-3</option>
+                  <option value="XI-4">XI-4</option>
+                  <option value="XI-5">XI-5</option>
+                </optgroup>
+                <optgroup label="Kelas XII">
+                  <option value="XII-1">XII-1</option>
+                  <option value="XII-2">XII-2</option>
+                  <option value="XII-3">XII-3</option>
+                  <option value="XII-4">XII-4</option>
+                  <option value="XII-5">XII-5</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="v-purpose">Keperluan Kunjungan *</label>
+              <select id="v-purpose" required>
+                <option value="Membaca di Tempat">Membaca di Tempat</option>
+                <option value="Meminjam Buku">Meminjam Buku</option>
+                <option value="Mengembalikan Buku">Mengembalikan Buku</option>
+                <option value="Mengerjakan Tugas / Literasi">Mengerjakan Tugas / Literasi</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Simpan Kehadiran</button>
+          </form>
+        </div>
+
+        <!-- DAFTAR HADIR HARI INI -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Daftar Hadir Pengunjung</h3>
+              <p class="subtitle">Riwayat kunjungan siswa SMAN 4 Karawang</p>
+            </div>
+            <input type="text" id="search-visitor" class="search-input" placeholder="Cari nama / kelas..." />
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal &amp; Jam</th>
+                  <th>NIS</th>
+                  <th>Nama Siswa</th>
+                  <th>Kelas</th>
+                  <th>Keperluan</th>
+                </tr>
+              </thead>
+              <tbody id="visitors-table-body">
+                <!-- Diisi via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: PEMINJAMAN & PENGEMBALIAN BUKU -->
+    <section id="tab-sirkulasi" class="tab-section">
+      <div class="grid-two">
+        <!-- FORM PEMINJAMAN -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Form Peminjaman Buku</h3>
+              <p class="subtitle">Isi data siswa dan pilih buku yang akan dipinjam</p>
+            </div>
+          </div>
+          <form id="form-borrow" class="form-stack">
+            <div class="form-group">
+              <label for="b-nis">NIS / NISN *</label>
+              <input type="text" id="b-nis" placeholder="Contoh: 232410085" required />
+            </div>
+            <div class="form-group">
+              <label for="b-name">Nama Lengkap Siswa *</label>
+              <input type="text" id="b-name" placeholder="Masukkan nama lengkap" required />
+            </div>
+            <div class="form-group">
+              <label for="b-class">Kelas *</label>
+              <select id="b-class" required>
+                <option value="">-- Pilih Kelas --</option>
+                <option value="X-1">X-1</option>
+                <option value="X-2">X-2</option>
+                <option value="X-3">X-3</option>
+                <option value="XI-1">XI-1</option>
+                <option value="XI-2">XI-2</option>
+                <option value="XI-3">XI-3</option>
+                <option value="XII-1">XII-1</option>
+                <option value="XII-2">XII-2</option>
+                <option value="XII-3">XII-3</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="b-book">Pilih Judul Buku *</label>
+              <select id="b-book" required>
+                <!-- Opsi diisi otomatis dari katalog buku yang stoknya > 0 -->
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="b-date">Tanggal Pinjam *</label>
+                <input type="date" id="b-date" required />
+              </div>
+              <div class="form-group">
+                <label for="b-due">Batas Pengembalian *</label>
+                <input type="date" id="b-due" required />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Catat Peminjaman Buku</button>
+          </form>
+        </div>
+
+        <!-- TABEL DATA PEMINJAMAN & TOMBOL PENGEMBALIAN -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Data Peminjaman &amp; Pengembalian</h3>
+              <p class="subtitle">Klik tombol <strong>Kembalikan</strong> saat siswa mengembalikan buku</p>
+            </div>
+            <div class="filter-bar">
+              <input type="text" id="search-loan" class="search-input" placeholder="Cari siswa / buku..." />
+              <select id="filter-loan-status" class="search-input">
+                <option value="ALL">Semua Status</option>
+                <option value="Dipinjam">Sedang Dipinjam</option>
+                <option value="Dikembalikan">Sudah Dikembalikan</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Peminjam</th>
+                  <th>Judul Buku</th>
+                  <th>Tgl Pinjam / Tempo</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="loans-table-body">
+                <!-- Diisi via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: KATALOG & TAMBAH BUKU -->
+    <section id="tab-katalog" class="tab-section">
+      <div class="grid-two">
+        <!-- FORM TAMBAH BUKU BARU (UNTUK ADMIN/PETUGAS) -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Tambah Koleksi Buku</h3>
+              <p class="subtitle">Input data buku baru ke dalam sistem sekolah</p>
+            </div>
+          </div>
+          <form id="form-book" class="form-stack">
+            <div class="form-group">
+              <label for="k-code">Kode Buku / ISBN *</label>
+              <input type="text" id="k-code" placeholder="Contoh: BK-007" required />
+            </div>
+            <div class="form-group">
+              <label for="k-title">Judul Buku *</label>
+              <input type="text" id="k-title" placeholder="Masukkan judul buku" required />
+            </div>
+            <div class="form-group">
+              <label for="k-author">Pengarang / Penerbit *</label>
+              <input type="text" id="k-author" placeholder="Nama pengarang atau penerbit" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="k-category">Kategori *</label>
+                <select id="k-category" required>
+                  <option value="Buku Pelajaran">Buku Pelajaran</option>
+                  <option value="Fiksi & Novel">Fiksi &amp; Novel</option>
+                  <option value="Ensiklopedia">Ensiklopedia</option>
+                  <option value="Karya Ilmiah">Karya Ilmiah</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="k-stock">Jumlah Stok *</label>
+                <input type="number" id="k-stock" min="1" value="5" required />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">+ Tambah ke Katalog</button>
+          </form>
+        </div>
+
+        <!-- DAFTAR KATALOG BUKU -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Daftar Koleksi Buku SMAN 4 Karawang</h3>
+              <p class="subtitle">Stok otomatis berkurang saat dipinjam &amp; bertambah saat dikembalikan</p>
+            </div>
+            <input type="text" id="search-book" class="search-input" placeholder="Cari judul / kode buku..." />
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Judul Buku</th>
+                  <th>Kategori</th>
+                  <th>Stok Tersedia</th>
+                </tr>
+              </thead>
+              <tbody id="books-table-body">
+                <!-- Diisi via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Perpustakaan SMAN 4 Karawang &bull; Sistem Informasi Absensi &amp; Sirkulasi Buku</p>
+    </div>
+  </footer>
+
+  <!-- Menghubungkan file JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
